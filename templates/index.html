@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{ site.title }}</title>
+        <meta name="description" content="{{ site.description }}" />
+        <meta name="author" content="{{ site.author }}" />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header>
+            <h1>{{ site.title }}</h1>
+            <p class="subtitle">{{ site.subtitle }}</p>
+        </header>
+
+        <main>
+            <div class="gallery">
+                {% for photo in photos %}
+                <div class="photo-item">
+                    <a href="assets/full/{{ photo.full_filename }}">
+                        <img
+                            src="assets/dithered/{{ photo.thumb_filename }}"
+                            alt="{{ photo.original }}"
+                            loading="lazy"
+                        />
+                    </a>
+                    <div class="metadata-box">
+                        {% if photo.meta.name %}
+                        <div class="photo-name">{{ photo.meta.name }}</div>
+                        {% elif not display.hide_filenames %}
+                        <div class="filename">{{ photo.original }}</div>
+                        {% endif %} {% if photo.meta.camera %}
+                        <div class="camera">{{ photo.meta.camera }}</div>
+                        {% endif %} {% if photo.meta.film %}
+                        <div class="film">{{ photo.meta.film }}</div>
+                        {% endif %} {% if photo.meta.lens %}
+                        <div class="lens">{{ photo.meta.lens }}</div>
+                        {% endif %} {% if photo.meta.location %}
+                        <div class="location">{{ photo.meta.location }}</div>
+                        {% endif %}
+                        <div class="date">{{ photo.meta.date }}</div>
+                        {% if photo.meta.notes %}
+                        <div class="notes">{{ photo.meta.notes }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p>{{ site.description }}</p>
+                <p class="stats">{{ count }} Photographs</p>
+                {% if footer.links %}
+                <nav class="footer-links">
+                    {% for link in footer.links %}
+                    <a href="{{ link.url }}">{{ link.name }}</a>
+                    {% endfor %}
+                </nav>
+                {% endif %}
+                <p class="credits">
+                    Created using
+                    <a href="https://github.com/un1970ix/analogatique"
+                        >analogatique</a
+                    >.
+                </p>
+            </div>
+        </footer>
+    </body>
+</html>

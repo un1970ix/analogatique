@@ -1,0 +1,26 @@
+[package]
+name = "analogatique"
+version = "0.1.0"
+authors = ["Bedir Ekim <root@un1970ix.com>"]
+edition = "2024"
+description = "web gallery for you photos"
+categories = ["command-line-utilities"]
+keywords = ["cli", "photography", "gallery"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/un1970ix/analogatique"
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/analogatique", dest = "/usr/bin/analogatique", mode = "755" },
+]
+
+[dependencies]
+anyhow = "1.0"
+image = "0.25"
+kamadak-exif = "0.6"
+rayon = "1.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tera = "1.20"
+toml = "0.8"
