@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 
 pub fn generate() -> Result<()> {
-    println!("analogatique · web gallery for you photos");
+    println!("analogatique · web gallery for your photos");
 
     let config = config::load()?;
     println!("✓ Loaded configuration for {}!", config.site.title);
