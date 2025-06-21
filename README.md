@@ -1,4 +1,4 @@
-# analogatique · web gallery for you photos
+# analogatique · web gallery for your photos
 
 A beautiful static gallery generator (written in Rust 🦀) for anyone who wants to showcase their photos, whether film scans or digital images. It keeps the analog spirit with vintage aesthetics and Atkinson dithering while making it easy to create stunning web galleries.
 
