@@ -1,9 +1,12 @@
+pub mod exif;
+pub mod merger;
+pub mod parser;
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct PhotoMetadata {
     pub filename: String,
     pub date: String,
@@ -16,13 +19,9 @@ pub struct PhotoMetadata {
 }
 
 pub fn load() -> Result<HashMap<String, PhotoMetadata>> {
-    let content = fs::read_to_string("metadata.txt")?;
-    let mut map = HashMap::new();
+    parser::load_from_file("metadata.txt")
+}
 
-    for line in content.lines().filter(|l| !l.trim().is_empty()) {
-        let meta: PhotoMetadata = serde_json::from_str(line)?;
-        map.insert(meta.filename.clone(), meta);
-    }
-
-    Ok(map)
+pub fn save(metadata: &HashMap<String, PhotoMetadata>) -> Result<()> {
+    parser::save_to_file("metadata.txt", metadata)
 }

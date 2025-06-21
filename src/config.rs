@@ -7,6 +7,7 @@ pub struct Config {
     pub site: Site,
     pub dithering: Dithering,
     pub display: Display,
+    pub output: Output,
     pub footer: Footer,
 }
 
@@ -27,6 +28,16 @@ pub struct Dithering {
 pub struct Display {
     #[serde(default)]
     pub hide_filenames: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Output {
+    #[serde(default = "default_output_path")]
+    pub path: String,
+}
+
+fn default_output_path() -> String {
+    "public".to_string()
 }
 
 #[derive(Debug, Deserialize, Serialize)]

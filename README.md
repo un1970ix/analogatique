@@ -18,54 +18,27 @@ mkdir films && cd films
 2. Set up the required structure.
 
 ```zsh
-mkdir photos templates
+analogatique init
 ```
 
-3. Create `config.toml`.
+3. Update `config.toml` with your gallery details and preferences.
 
-```toml
-[site]
-title = "Films"
-subtitle = "Took on 35mm."
-description = "A collection of analog moments."
-author = "Nicéphore Niépce"
+4. Add your photos to the `photos/` directory.
 
-[dithering]
-enabled = true
-
-[display]
-hide_filenames = true
-
-[footer]
-links = [
-    { url = "", name = "" },
-    { url = "", name = "" },
-]
-```
-
-4. Create `metadata.txt` by writing one JSON line for each photo.
+5. Create `metadata.txt` by writing one JSON line for each photo or use `analogatique extract-metadata` to extract metadata from your photos.
 
 ```json
 {"filename": "photo1.jpeg", "date": "15-06-2023", "name": "Sunset at the Beach", "camera": "Canon AE-1", "film": "FUJICOLOR C200"}
 {"filename": "photo2.jpeg", "date": "20-06-2023", "camera": "Polaroid SX-70", "film": "B&W SX-70"}
 ```
 
-5. Copy the default templates.
+6. Generate your gallery:
 
 ```zsh
-curl -L https://raw.githubusercontent.com/un1970ix/analogatique/master/templates/index.html > templates/index.html
-curl -L https://raw.githubusercontent.com/un1970ix/analogatique/master/templates/styles.css > templates/styles.css
+analogatique generate
 ```
 
-6. Add your photos to the `photos/` directory.
-
-7. Generate your gallery:
-
-```zsh
-analogatique
-```
-
-Your gallery will be created in the `public/` directory!
+Your gallery will be created in the `public/` directory if you haven't changed the output directory.
 
 ## Metadata Format
 
