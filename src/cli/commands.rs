@@ -92,6 +92,7 @@ enabled = false
 
 [display]
 hide_filenames = true
+photos_per_page = 0
 
 [output]
 path = "public"

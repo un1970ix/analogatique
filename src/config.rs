@@ -28,6 +28,8 @@ pub struct Dithering {
 pub struct Display {
     #[serde(default)]
     pub hide_filenames: bool,
+    #[serde(default)]
+    pub photos_per_page: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
