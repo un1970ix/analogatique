@@ -47,8 +47,14 @@ pub fn create_site(config: &Config, photos: &[Photo]) -> Result<()> {
         for (i, page_photos) in pages.iter().enumerate() {
             let page_num = i + 1;
             let base_path = if page_num == 1 { "" } else { "../../" };
-            let mut ctx =
-                build_context(config, page_photos, total_count, page_num, total_pages, base_path);
+            let mut ctx = build_context(
+                config,
+                page_photos,
+                total_count,
+                page_num,
+                total_pages,
+                base_path,
+            );
 
             if page_num > 1 {
                 ctx.insert("prev_url", &page_url(page_num - 1, page_num));

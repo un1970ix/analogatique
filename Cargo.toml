@@ -1,9 +1,9 @@
 [package]
 name = "analogatique"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Bedir Ekim <root@un1970ix.com>"]
 edition = "2024"
-description = "web gallery for you photos"
+description = "web gallery for your photos"
 categories = ["command-line-utilities"]
 keywords = ["cli", "photography", "gallery"]
 license = "MIT"

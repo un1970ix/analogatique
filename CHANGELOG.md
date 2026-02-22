@@ -7,17 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-22
+
 ### Added
+- Static pagination support via `photos_per_page` config option.
+- Pre-computed masonry column layout using shortest-column-first algorithm.
+- Pagination navigation with previous/next links across pages.
 
 ### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
+- Replaced CSS `column-count` layout with flexbox-based column system.
+- Gallery now renders balanced columns using photo aspect ratios.
+- Added `width` and `height` attributes to images to prevent layout shift.
+- Mobile layout preserves chronological reading order via `display: contents`.
 
 ## [0.2.0] - 2025-06-17
 
@@ -29,5 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release!
 
-[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.2.0...master
+[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.3.0...master
+[0.3.0]: https://github.com/un1970ix/analogatique/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/un1970ix/analogatique/compare/0.1.0...0.2.0

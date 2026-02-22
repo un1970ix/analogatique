@@ -20,7 +20,9 @@
                 <div class="column">
                     {% for photo in column %}
                     <div class="photo-item" style="order: {{ photo.order }}">
-                        <a href="{{ base_path }}assets/full/{{ photo.full_filename }}">
+                        <a
+                            href="{{ base_path }}assets/full/{{ photo.full_filename }}"
+                        >
                             <img
                                 src="{{ base_path }}assets/thumbnail/{{ photo.thumb_filename }}"
                                 alt="{{ photo.original }}"
@@ -41,7 +43,9 @@
                             {% endif %} {% if photo.meta.lens %}
                             <div class="lens">{{ photo.meta.lens }}</div>
                             {% endif %} {% if photo.meta.location %}
-                            <div class="location">{{ photo.meta.location }}</div>
+                            <div class="location">
+                                {{ photo.meta.location }}
+                            </div>
                             {% endif %}
                             <div class="date">{{ photo.meta.date }}</div>
                             {% if photo.meta.notes %}
@@ -57,9 +61,13 @@
             {% if total_pages > 1 %}
             <nav class="pagination">
                 {% if prev_url %}
-                <a href="{{ prev_url }}" class="page-link prev">&larr; Previous</a>
+                <a href="{{ prev_url }}" class="page-link prev"
+                    >&larr; Previous</a
+                >
                 {% endif %}
-                <span class="page-info">{{ current_page }} / {{ total_pages }}</span>
+                <span class="page-info"
+                    >{{ current_page }} / {{ total_pages }}</span
+                >
                 {% if next_url %}
                 <a href="{{ next_url }}" class="page-link next">Next &rarr;</a>
                 {% endif %}
