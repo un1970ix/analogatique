@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-20
+
+### Added
+- Weekly `cargo audit` workflow.
+
+### Changed
+- Limited `image` to the formats actually read and written, reducing the dependency tree from 142 to 94 crates.
+
+### Fixed
+- `extract-metadata` no longer discards every entry in `metadata.txt` when a single line fails to parse; the offending line number is reported instead.
+- Photos sharing a name across formats no longer overwrite each other's generated files.
+- Gallery ordering is now stable for photos sharing a date, instead of following filesystem order.
+- Thumbnails for very wide panoramas no longer collapse to a single pixel.
+- Camera name is read when only one of the Exif `Make` or `Model` tags is present, and is no longer duplicated when `Model` already repeats `Make`.
+- `metadata.txt` now ends with a newline.
+
+### Security
+- Updated dependencies to clear RUSTSEC-2026-0204, RUSTSEC-2026-0190, and RUSTSEC-2026-0097, and to drop the yanked `core2`, `js-sys`, and `wasm-bindgen` releases.
+
 ## [0.3.0] - 2026-02-22
 
 ### Added
@@ -30,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release!
 
-[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.3.0...master
+[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.3.1...master
+[0.3.1]: https://github.com/un1970ix/analogatique/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/un1970ix/analogatique/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/un1970ix/analogatique/compare/0.1.0...0.2.0
