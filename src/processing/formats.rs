@@ -4,9 +4,9 @@ use crate::metadata::{PhotoMetadata, exif};
 use anyhow::{Context, Result};
 use image::ImageFormat;
 use rayon::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub fn process_all_images(
     metadata: &HashMap<String, PhotoMetadata>,
@@ -15,8 +15,8 @@ pub fn process_all_images(
     let config = config::load()?;
     let output_path = &config.output.path;
 
-    fs::create_dir_all(format!("{}/assets/thumbnail", output_path))?;
-    fs::create_dir_all(format!("{}/assets/full", output_path))?;
+    fs::create_dir_all(format!("{output_path}/assets/thumbnail"))?;
+    fs::create_dir_all(format!("{output_path}/assets/full"))?;
 
     let mut image_paths = Vec::new();
     let photos_dir = Path::new("photos");
@@ -39,10 +39,14 @@ pub fn process_all_images(
         }
     }
 
-    let mut photos: Vec<Photo> = image_paths
+    image_paths.sort_by(|(a, _), (b, _)| a.file_name().cmp(&b.file_name()));
+
+    let jobs = assign_output_names(&image_paths);
+
+    let mut photos: Vec<Photo> = jobs
         .par_iter()
         .filter_map(
-            |(path, meta)| match process_one(path, meta, dither, output_path) {
+            |(path, meta, slug)| match process_one(path, meta, slug, dither, output_path) {
                 Ok(photo) => {
                     println!("✓ Processed {}", meta.filename);
                     Some(photo)
@@ -56,17 +60,55 @@ pub fn process_all_images(
         .collect();
 
     photos.sort_by(|a, b| {
-        let date_a = parse_date(&a.meta.date);
-        let date_b = parse_date(&b.meta.date);
-        date_b.cmp(&date_a)
+        parse_date(&b.meta.date)
+            .cmp(&parse_date(&a.meta.date))
+            .then_with(|| a.original.cmp(&b.original))
     });
 
     Ok(photos)
 }
 
+fn assign_output_names(
+    images: &[(PathBuf, PhotoMetadata)],
+) -> Vec<(PathBuf, PhotoMetadata, String)> {
+    let mut used: HashSet<String> = HashSet::new();
+    let mut jobs = Vec::with_capacity(images.len());
+
+    for (path, meta) in images {
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("photo")
+            .to_string();
+
+        let extension = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("img")
+            .to_lowercase();
+
+        let mut slug = stem.clone();
+
+        if used.contains(&slug) {
+            slug = format!("{stem}-{extension}");
+            let mut counter = 2;
+            while used.contains(&slug) {
+                slug = format!("{stem}-{extension}-{counter}");
+                counter += 1;
+            }
+        }
+
+        used.insert(slug.clone());
+        jobs.push((path.clone(), meta.clone(), slug));
+    }
+
+    jobs
+}
+
 fn process_one(
     path: &Path,
     meta: &PhotoMetadata,
+    slug: &str,
     dither: bool,
     output_path: &str,
 ) -> Result<Photo> {
@@ -76,22 +118,17 @@ fn process_one(
 
     let (w, h) = (img.width(), img.height());
 
-    let stem = path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .ok_or_else(|| anyhow::anyhow!("Invalid filename"))?;
-
-    let thumb_filename = format!("{}.webp", stem);
-    let full_filename = format!("{}.jpeg", stem);
+    let thumb_filename = format!("{slug}.webp");
+    let full_filename = format!("{slug}.jpeg");
 
     let thumb = resize::create_thumbnail(&img, dither)?;
     thumb.save_with_format(
-        format!("{}/assets/thumbnail/{}", output_path, thumb_filename),
+        format!("{output_path}/assets/thumbnail/{thumb_filename}"),
         ImageFormat::WebP,
     )?;
 
     img.save_with_format(
-        format!("{}/assets/full/{}", output_path, full_filename),
+        format!("{output_path}/assets/full/{full_filename}"),
         ImageFormat::Jpeg,
     )?;
 
