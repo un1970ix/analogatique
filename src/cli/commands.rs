@@ -1,5 +1,6 @@
 use crate::{config, generator, metadata, processing, utils};
 use anyhow::Result;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
@@ -64,7 +65,11 @@ pub fn extract_metadata() -> Result<()> {
         ));
     }
 
-    let existing = metadata::load().unwrap_or_default();
+    let existing = if Path::new("metadata.txt").exists() {
+        metadata::load()?
+    } else {
+        HashMap::new()
+    };
     let existing_count = existing.len();
 
     let existing_copy = existing.clone();
