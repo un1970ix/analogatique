@@ -25,3 +25,32 @@ pub fn create_thumbnail(img: &DynamicImage, apply_dither: bool) -> Result<Dynami
         thumb
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{THUMBNAIL_WIDTH, create_thumbnail};
+    use image::{DynamicImage, RgbImage};
+
+    fn img(w: u32, h: u32) -> DynamicImage {
+        DynamicImage::ImageRgb8(RgbImage::new(w, h))
+    }
+
+    #[test]
+    fn extreme_aspect_ratio_keeps_at_least_one_pixel_of_height() {
+        let thumb = create_thumbnail(&img(2000, 3), false).unwrap();
+        assert_eq!(thumb.width(), THUMBNAIL_WIDTH);
+        assert!(thumb.height() >= 1, "height collapsed to zero");
+    }
+
+    #[test]
+    fn wide_images_are_scaled_to_the_thumbnail_width() {
+        let thumb = create_thumbnail(&img(800, 600), false).unwrap();
+        assert_eq!((thumb.width(), thumb.height()), (THUMBNAIL_WIDTH, 300));
+    }
+
+    #[test]
+    fn narrow_images_are_left_alone() {
+        let thumb = create_thumbnail(&img(100, 80), false).unwrap();
+        assert_eq!((thumb.width(), thumb.height()), (100, 80));
+    }
+}
