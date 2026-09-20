@@ -110,7 +110,8 @@ fn page_url(target: usize, current: usize) -> String {
 }
 
 fn load_templates() -> Result<Tera> {
-    let mut tera = Tera::new("templates/**/*")?;
+    let mut tera = Tera::new();
+    tera.load_from_glob("templates/**/*")?;
     tera.autoescape_on(vec!["html"]);
     Ok(tera)
 }
