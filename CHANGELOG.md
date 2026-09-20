@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-20
+
 ### Changed
-- Migrated to Tera 2, which renders identical output while dropping 28 transitive dependencies.
+- **Templates now use Tera 2.** Custom templates may need updating: macros have been removed, several filters were renamed or moved to `tera-contrib`, and undefined variables now raise an error. See the [Tera migration guide](https://github.com/Keats/tera/blob/master/MIGRATION.md). The bundled templates are unchanged and render identically.
+- Migrated to Tera 2, dropping 28 transitive dependencies and 2.7 MB of binary size.
+- Generated HTML no longer escapes `/` as `&#x2F;` in attribute values.
+- Updated `toml` to 1.1 and `actions/checkout` to v7.
 
 ## [0.3.2] - 2026-09-20
 
@@ -69,7 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release!
 
-[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.3.2...master
+[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.4.0...master
+[0.4.0]: https://github.com/un1970ix/analogatique/compare/0.3.2...0.4.0
 [0.3.2]: https://github.com/un1970ix/analogatique/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/un1970ix/analogatique/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/un1970ix/analogatique/compare/0.2.0...0.3.0
