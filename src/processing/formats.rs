@@ -30,12 +30,11 @@ pub fn process_all_images(
     for entry in fs::read_dir(photos_dir)? {
         let path = entry?.path();
 
-        if is_image(&path) {
-            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                if let Some(meta) = metadata.get(name) {
-                    image_paths.push((path, meta.clone()));
-                }
-            }
+        if is_image(&path)
+            && let Some(name) = path.file_name().and_then(|n| n.to_str())
+            && let Some(meta) = metadata.get(name)
+        {
+            image_paths.push((path, meta.clone()));
         }
     }
 

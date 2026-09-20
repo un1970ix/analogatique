@@ -13,10 +13,10 @@ pub fn merge_metadata(
     let mut actual_files = std::collections::HashSet::new();
     for entry in fs::read_dir(photos_dir)? {
         let path = entry?.path();
-        if is_image(&path) {
-            if let Some(filename) = path.file_name().and_then(|n| n.to_str()) {
-                actual_files.insert(filename.to_string());
-            }
+        if is_image(&path)
+            && let Some(filename) = path.file_name().and_then(|n| n.to_str())
+        {
+            actual_files.insert(filename.to_string());
         }
     }
 
