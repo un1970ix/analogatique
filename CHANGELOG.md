@@ -7,12 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-20
+
 ### Added
+- Workflow running formatting, lint, test, and build checks on every push and pull request.
+- Regression tests covering the filename collision, metadata parse failure, thumbnail sizing, and Exif camera fixes from 0.3.1.
+- Dependabot updates for GitHub Actions and Cargo dependencies.
 - Release workflow publishes tags with a suffix, such as `0.4.0-rc1`, as prereleases.
 
 ### Changed
+- Declared a minimum supported Rust version of 1.88.
 - Replaced the archived `actions/create-release`, `actions/upload-release-asset`, and `actions-rs/toolchain` actions with maintained equivalents.
-- Cross is now installed only on Linux runners, where it has an image.
+- Cross is now installed only on Linux runners, where it has an image, and is pinned to an exact revision.
+- Audit workflow runs `cargo audit` directly instead of an action that still targets Node 20.
 
 ### Fixed
 - Audit workflow could not publish its results because the job token lacked permission to create a check run.
@@ -59,7 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release!
 
-[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.3.1...master
+[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.3.2...master
+[0.3.2]: https://github.com/un1970ix/analogatique/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/un1970ix/analogatique/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/un1970ix/analogatique/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/un1970ix/analogatique/compare/0.1.0...0.2.0

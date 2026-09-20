@@ -1,6 +1,6 @@
 [package]
 name = "analogatique"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Bedir Ekim <root@un1970ix.com>"]
 edition = "2024"
 rust-version = "1.88"
