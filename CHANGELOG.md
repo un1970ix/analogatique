@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Migrated to Tera 2, which renders identical output while dropping 28 transitive dependencies.
+
 ## [0.3.2] - 2026-09-20
 
 ### Added

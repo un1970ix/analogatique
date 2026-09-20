@@ -23,5 +23,5 @@ kamadak-exif = "0.6"
 rayon = "1.10"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tera = "1.20"
+tera = { version = "2.4", default-features = false, features = ["glob_fs"] }
 toml = "0.8"
