@@ -17,7 +17,7 @@ assets = [
 
 [dependencies]
 anyhow = "1.0"
-image = "0.25"
+image = { version = "0.25", default-features = false, features = ["rayon", "jpeg", "png", "tiff", "webp"] }
 kamadak-exif = "0.6"
 rayon = "1.10"
 serde = { version = "1.0", features = ["derive"] }
