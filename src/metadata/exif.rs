@@ -108,3 +108,38 @@ fn parse_exif_date(date_str: &str) -> Option<String> {
     }
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{camera_name, parse_exif_date};
+
+    fn s(v: &str) -> Option<String> {
+        Some(v.to_string())
+    }
+
+    #[test]
+    fn camera_joins_make_and_model() {
+        assert_eq!(camera_name(s("Canon"), s("AE-1")), s("Canon AE-1"));
+    }
+
+    #[test]
+    fn camera_falls_back_to_whichever_tag_is_present() {
+        assert_eq!(camera_name(s("Polaroid"), None), s("Polaroid"));
+        assert_eq!(camera_name(None, s("SX-70")), s("SX-70"));
+        assert_eq!(camera_name(None, None), None);
+    }
+
+    #[test]
+    fn camera_does_not_repeat_make_already_in_model() {
+        assert_eq!(
+            camera_name(s("Canon"), s("Canon EOS 5D")),
+            s("Canon EOS 5D")
+        );
+    }
+
+    #[test]
+    fn exif_date_is_reordered_to_day_month_year() {
+        assert_eq!(parse_exif_date("2023:06:15 10:30:00"), s("15-06-2023"));
+        assert_eq!(parse_exif_date("not a date"), None);
+    }
+}

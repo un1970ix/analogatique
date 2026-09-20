@@ -164,3 +164,79 @@ fn is_image(path: &Path) -> bool {
         })
         .unwrap_or(false)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{assign_output_names, parse_date};
+    use crate::metadata::PhotoMetadata;
+    use std::path::PathBuf;
+
+    fn meta(filename: &str) -> PhotoMetadata {
+        PhotoMetadata {
+            filename: filename.to_string(),
+            date: "01-01-2024".to_string(),
+            name: None,
+            camera: None,
+            film: None,
+            lens: None,
+            location: None,
+            notes: None,
+        }
+    }
+
+    fn names(files: &[&str]) -> Vec<String> {
+        let images: Vec<(PathBuf, PhotoMetadata)> = files
+            .iter()
+            .map(|f| (PathBuf::from(format!("photos/{f}")), meta(f)))
+            .collect();
+
+        assign_output_names(&images)
+            .into_iter()
+            .map(|(_, _, slug)| slug)
+            .collect()
+    }
+
+    #[test]
+    fn same_stem_across_formats_does_not_collide() {
+        let slugs = names(&["photo.jpg", "photo.png", "photo.tiff"]);
+        assert_eq!(slugs, vec!["photo", "photo-png", "photo-tiff"]);
+
+        let mut unique = slugs.clone();
+        unique.sort();
+        unique.dedup();
+        assert_eq!(unique.len(), slugs.len(), "output names collided");
+    }
+
+    #[test]
+    fn distinct_stems_keep_their_plain_name() {
+        assert_eq!(names(&["a.jpg", "b.jpg"]), vec!["a", "b"]);
+    }
+
+    #[test]
+    fn repeated_stem_and_extension_gets_a_counter() {
+        let images: Vec<(PathBuf, PhotoMetadata)> = ["x.jpg", "x.jpg", "x.jpg"]
+            .iter()
+            .map(|f| (PathBuf::from(format!("photos/{f}")), meta(f)))
+            .collect();
+
+        let slugs: Vec<String> = assign_output_names(&images)
+            .into_iter()
+            .map(|(_, _, slug)| slug)
+            .collect();
+
+        assert_eq!(slugs, vec!["x", "x-jpg", "x-jpg-2"]);
+    }
+
+    #[test]
+    fn dates_sort_newest_first() {
+        let mut dates = ["01-01-2024", "15-06-2023", "20-06-2023"];
+        dates.sort_by_key(|d| std::cmp::Reverse(parse_date(d)));
+        assert_eq!(dates, ["01-01-2024", "20-06-2023", "15-06-2023"]);
+    }
+
+    #[test]
+    fn malformed_dates_do_not_panic() {
+        assert_eq!(parse_date("nonsense"), (0, 0, 0));
+        assert_eq!(parse_date("aa-bb-cccc"), (0, 0, 0));
+    }
+}
