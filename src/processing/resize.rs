@@ -2,11 +2,16 @@ use super::dither;
 use anyhow::Result;
 use image::DynamicImage;
 
+const THUMBNAIL_WIDTH: u32 = 400;
+
 pub fn create_thumbnail(img: &DynamicImage, apply_dither: bool) -> Result<DynamicImage> {
-    let thumb = if img.width() > 400 {
+    let thumb = if img.width() > THUMBNAIL_WIDTH {
+        let height =
+            u64::from(THUMBNAIL_WIDTH) * u64::from(img.height()) / u64::from(img.width().max(1));
+
         img.resize(
-            400,
-            400 * img.height() / img.width(),
+            THUMBNAIL_WIDTH,
+            u32::try_from(height).unwrap_or(u32::MAX).max(1),
             image::imageops::FilterType::Lanczos3,
         )
     } else {
