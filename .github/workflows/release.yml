@@ -3,35 +3,45 @@ on:
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-*"
+permissions:
+  contents: read
 jobs:
   create-release:
     name: create-release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
-      upload_url: ${{ steps.release.outputs.upload_url }}
-      analogatique_version: ${{ env.ANALOGATIQUE_VERSION }}
+      analogatique_version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
       - name: Get the release version from the tag
+        id: version
         shell: bash
-        if: env.ANALOGATIQUE_VERSION == ''
         run: |
-          echo "ANALOGATIQUE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          echo "version is: ${{ env.ANALOGATIQUE_VERSION }}"
+          version="${GITHUB_REF#refs/tags/}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$version" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version is: $version"
       - name: Create GitHub release
-        id: release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ env.ANALOGATIQUE_VERSION }}
-          release_name: analogatique ${{ env.ANALOGATIQUE_VERSION }}
+          tag_name: ${{ steps.version.outputs.version }}
+          name: analogatique ${{ steps.version.outputs.version }}
           body: See [CHANGELOG.md](https://github.com/un1970ix/analogatique/blob/master/CHANGELOG.md) for details.
-          prerelease: false
+          prerelease: ${{ steps.version.outputs.prerelease }}
 
   build-release:
     name: build-release
     needs: ["create-release"]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     env:
       CARGO: cargo
       TARGET_FLAGS: ""
@@ -112,25 +122,27 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          target: ${{ matrix.target }}
+          targets: ${{ matrix.target }}
+
+      - name: Set target flags
+        shell: bash
+        run: |
+          echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+          echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Use Cross
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           cargo install cross --git https://github.com/cross-rs/cross
           echo "CARGO=cross" >> $GITHUB_ENV
-          echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
-          echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Show command used for Cargo
         run: |
@@ -165,14 +177,10 @@ jobs:
 
       - name: Upload RPM package
         if: startsWith(matrix.build, 'x86_64-linux-gnu')
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v3
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: target/${{ matrix.target }}/generate-rpm/analogatique-${{ needs.create-release.outputs.analogatique_version }}-x86_64.rpm
-          asset_name: analogatique-${{ needs.create-release.outputs.analogatique_version }}-x86_64.rpm
-          asset_content_type: application/x-rpm
+          tag_name: ${{ needs.create-release.outputs.analogatique_version }}
+          files: target/${{ matrix.target }}/generate-rpm/analogatique-${{ needs.create-release.outputs.analogatique_version }}-x86_64.rpm
 
       - name: Create Debian package
         shell: bash
@@ -189,23 +197,21 @@ jobs:
           esac;
           echo "DPKG_ARCH=${DPKG_ARCH}" >> $GITHUB_ENV
 
+          version="${{ needs.create-release.outputs.analogatique_version }}"
+          built="target/${{ matrix.target }}/debian/analogatique_${version}_${DPKG_ARCH}.deb"
+          published="target/${{ matrix.target }}/debian/analogatique_${{ matrix.target }}_${version}_${DPKG_ARCH}.deb"
+          mv "$built" "$published"
+          echo "DEB_ASSET=${published}" >> $GITHUB_ENV
+
       - name: Upload Deb Release Asset
         if: startsWith(matrix.build, 'x86_64-linux-gnu') || startsWith(matrix.build, 'x86_64-linux-musl')
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v3
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_content_type: application/vnd.debian.binary-package
-          asset_path: target/${{ matrix.target }}/debian/analogatique_${{ needs.create-release.outputs.analogatique_version }}_${{ env.DPKG_ARCH }}.deb
-          asset_name: analogatique_${{ matrix.target }}_${{ needs.create-release.outputs.analogatique_version }}_${{ env.DPKG_ARCH }}.deb
+          tag_name: ${{ needs.create-release.outputs.analogatique_version }}
+          files: ${{ env.DEB_ASSET }}
 
       - name: Upload release archive
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v3
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ${{ env.ASSET }}
-          asset_name: ${{ env.ASSET }}
-          asset_content_type: application/octet-stream
+          tag_name: ${{ needs.create-release.outputs.analogatique_version }}
+          files: ${{ env.ASSET }}

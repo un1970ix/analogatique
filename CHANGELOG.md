@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Release workflow publishes tags with a suffix, such as `0.4.0-rc1`, as prereleases.
+
+### Changed
+- Replaced the archived `actions/create-release`, `actions/upload-release-asset`, and `actions-rs/toolchain` actions with maintained equivalents.
+- Cross is now installed only on Linux runners, where it has an image.
+
 ### Fixed
 - Audit workflow could not publish its results because the job token lacked permission to create a check run.
 
