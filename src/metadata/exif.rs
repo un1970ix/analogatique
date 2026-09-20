@@ -19,11 +19,15 @@ pub fn extract_from_file(path: &Path, filename: &str) -> Result<PhotoMetadata> {
         notes: None,
     };
 
-    if let Some(make) = get_exif_string(&exif, Tag::Make) {
-        if let Some(model) = get_exif_string(&exif, Tag::Model) {
-            metadata.camera = Some(format!("{} {}", make.trim(), model.trim()));
-        }
-    }
+    let make = trimmed_exif_string(&exif, Tag::Make);
+    let model = trimmed_exif_string(&exif, Tag::Model);
+
+    metadata.camera = match (make, model) {
+        (Some(make), Some(model)) if model.starts_with(&make) => Some(model),
+        (Some(make), Some(model)) => Some(format!("{make} {model}")),
+        (Some(value), None) | (None, Some(value)) => Some(value),
+        (None, None) => None,
+    };
 
     if let Some(lens_model) = get_exif_string(&exif, Tag::LensModel) {
         metadata.lens = Some(lens_model.trim().to_string());
@@ -72,6 +76,12 @@ fn read_exif(path: &Path) -> Result<exif::Exif> {
     let mut reader = std::io::BufReader::new(file);
     let exif_reader = Reader::new();
     Ok(exif_reader.read_from_container(&mut reader)?)
+}
+
+fn trimmed_exif_string(exif: &exif::Exif, tag: Tag) -> Option<String> {
+    get_exif_string(exif, tag)
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
 }
 
 fn get_exif_string(exif: &exif::Exif, tag: Tag) -> Option<String> {
