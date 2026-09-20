@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Audit workflow could not publish its results because the job token lacked permission to create a check run.
+
 ## [0.3.1] - 2026-09-20
 
 ### Added
