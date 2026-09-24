@@ -20,10 +20,35 @@ pub fn load_from_file(path: &str) -> Result<HashMap<String, PhotoMetadata>> {
             )
         })?;
 
-        map.insert(meta.filename.clone(), meta);
+        if !is_valid_date(&meta.date) {
+            eprintln!(
+                "warning: {} line {}: date \"{}\" is not DD-MM-YYYY and will sort last",
+                path,
+                index + 1,
+                meta.date
+            );
+        }
+
+        if let Some(previous) = map.insert(meta.filename.clone(), meta) {
+            eprintln!(
+                "warning: {} line {}: duplicate entry for {}, the later one wins",
+                path,
+                index + 1,
+                previous.filename
+            );
+        }
     }
 
     Ok(map)
+}
+
+fn is_valid_date(date: &str) -> bool {
+    let parts: Vec<&str> = date.split('-').collect();
+    parts.len() == 3
+        && parts[0].len() == 2
+        && parts[1].len() == 2
+        && parts[2].len() == 4
+        && parts.iter().all(|p| p.chars().all(|c| c.is_ascii_digit()))
 }
 
 pub fn save_to_file(path: &str, metadata: &HashMap<String, PhotoMetadata>) -> Result<()> {

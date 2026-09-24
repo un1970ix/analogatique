@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 
@@ -17,6 +17,12 @@ pub struct Site {
     pub subtitle: String,
     pub description: String,
     pub author: String,
+    #[serde(default = "default_language")]
+    pub language: String,
+}
+
+fn default_language() -> String {
+    "en".to_string()
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -54,6 +60,7 @@ pub struct Link {
 }
 
 pub fn load() -> Result<Config> {
-    let content = fs::read_to_string("config.toml")?;
-    Ok(toml::from_str(&content)?)
+    let content = fs::read_to_string("config.toml")
+        .context("could not read config.toml. Run 'analogatique init' to create one")?;
+    toml::from_str(&content).context("config.toml is not valid")
 }
