@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `site.language` option setting the `lang` attribute on generated pages.
+- Warnings for photos missing from `metadata.txt`, duplicate entries, and dates that are not DD-MM-YYYY.
+
+### Changed
+- Output filenames are sanitised, so names with spaces, punctuation, or a leading dot no longer produce URLs that hosts refuse to serve.
+- `alt` text prefers a photo's `name` over its filename.
+- Image `width` and `height` attributes now describe the thumbnail rather than the full-resolution file.
+
+### Fixed
+- `--help` and `-h` print help and exit successfully instead of reporting an unknown command.
+- `generate` exits non-zero when a photo fails to process, rather than reporting success for an empty gallery.
+- Thumbnails and full-resolution files for deleted photos are removed instead of accumulating.
+- A missing `config.toml` reports what is missing and how to create it.
+- A non-template file in `templates/` no longer breaks generation.
+
 ### Removed
 - Dependabot configuration for GitHub Actions and Cargo updates.
 

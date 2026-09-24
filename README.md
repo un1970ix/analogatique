@@ -71,6 +71,7 @@ Every section below is required in `config.toml`, even when its fields are left 
 | `site.subtitle`           | String  | Required   | Shown beneath the title.                                    |
 | `site.description`        | String  | Required   | Meta description, also shown in the footer.                 |
 | `site.author`             | String  | Required   | Meta author tag.                                            |
+| `site.language`           | String  | `"en"`     | BCP 47 language tag for the `lang` attribute.               |
 | `dithering.enabled`       | Boolean | Required   | Apply Atkinson dithering to thumbnails.                     |
 | `display.hide_filenames`  | Boolean | `false` \* | Hide filenames for photos with no `name` in their metadata. |
 | `display.photos_per_page` | Integer | `0`        | Photos per page. `0` puts every photo on a single page.     |
