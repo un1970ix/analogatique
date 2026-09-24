@@ -29,13 +29,15 @@ pub fn create_site(config: &Config, photos: &[Photo]) -> Result<()> {
     let per_page = config.display.photos_per_page;
     let total_count = photos.len();
 
-    let ctx = build_context(config, photos, total_count, 1, 1, "");
+    let mut style_ctx = Context::new();
+    style_ctx.insert("site", &config.site);
     fs::write(
         format!("{}/styles.css", output_path),
-        tera.render("styles.css", &ctx)?,
+        tera.render("styles.css", &style_ctx)?,
     )?;
 
     if per_page == 0 || photos.is_empty() {
+        let ctx = build_context(config, photos, total_count, 1, 1, "");
         fs::write(
             format!("{}/index.html", output_path),
             tera.render("index.html", &ctx)?,
@@ -87,7 +89,7 @@ fn distribute_into_columns(photos: &[Photo]) -> Vec<Vec<PhotoEntry<'_>>> {
         let shortest = heights
             .iter()
             .enumerate()
-            .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .min_by(|a, b| a.1.total_cmp(b.1))
             .map(|(i, _)| i)
             .unwrap_or(0);
 

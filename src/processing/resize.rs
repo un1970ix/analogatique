@@ -1,10 +1,9 @@
 use super::dither;
-use anyhow::Result;
 use image::DynamicImage;
 
 const THUMBNAIL_WIDTH: u32 = 400;
 
-pub fn create_thumbnail(img: &DynamicImage, apply_dither: bool) -> Result<DynamicImage> {
+pub fn create_thumbnail(img: &DynamicImage, apply_dither: bool) -> DynamicImage {
     let thumb = if img.width() > THUMBNAIL_WIDTH {
         let height =
             u64::from(THUMBNAIL_WIDTH) * u64::from(img.height()) / u64::from(img.width().max(1));
@@ -18,12 +17,12 @@ pub fn create_thumbnail(img: &DynamicImage, apply_dither: bool) -> Result<Dynami
         img.clone()
     };
 
-    Ok(if apply_dither {
+    if apply_dither {
         let gray = thumb.to_luma8();
         DynamicImage::ImageLuma8(dither::atkinson(&gray))
     } else {
         thumb
-    })
+    }
 }
 
 #[cfg(test)]
@@ -37,20 +36,20 @@ mod tests {
 
     #[test]
     fn extreme_aspect_ratio_keeps_at_least_one_pixel_of_height() {
-        let thumb = create_thumbnail(&img(2000, 3), false).unwrap();
+        let thumb = create_thumbnail(&img(2000, 3), false);
         assert_eq!(thumb.width(), THUMBNAIL_WIDTH);
         assert!(thumb.height() >= 1, "height collapsed to zero");
     }
 
     #[test]
     fn wide_images_are_scaled_to_the_thumbnail_width() {
-        let thumb = create_thumbnail(&img(800, 600), false).unwrap();
+        let thumb = create_thumbnail(&img(800, 600), false);
         assert_eq!((thumb.width(), thumb.height()), (THUMBNAIL_WIDTH, 300));
     }
 
     #[test]
     fn narrow_images_are_left_alone() {
-        let thumb = create_thumbnail(&img(100, 80), false).unwrap();
+        let thumb = create_thumbnail(&img(100, 80), false);
         assert_eq!((thumb.width(), thumb.height()), (100, 80));
     }
 }

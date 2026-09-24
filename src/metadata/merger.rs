@@ -5,7 +5,7 @@ use std::fs;
 use std::path::Path;
 
 pub fn merge_metadata(
-    existing: HashMap<String, PhotoMetadata>,
+    existing: &HashMap<String, PhotoMetadata>,
     photos_dir: &Path,
 ) -> Result<HashMap<String, PhotoMetadata>> {
     let mut merged = HashMap::new();
@@ -23,7 +23,7 @@ pub fn merge_metadata(
     let mut removed_count = 0;
     let mut preserved_count = 0;
 
-    for (filename, metadata) in &existing {
+    for (filename, metadata) in existing {
         if actual_files.contains(filename) {
             merged.insert(filename.clone(), metadata.clone());
             preserved_count += 1;
