@@ -19,6 +19,10 @@ pub fn run() -> Result<()> {
             println!("{} {}", NAME, VERSION);
             Ok(())
         }
+        "--help" | "-h" => {
+            print_help();
+            Ok(())
+        }
         "init" => commands::init(),
         "extract-metadata" => commands::extract_metadata(),
         "generate" => commands::generate(),
@@ -33,7 +37,7 @@ pub fn run() -> Result<()> {
 
 fn print_help() {
     println!("{} {}", NAME, VERSION);
-    println!("web gallery for you photos");
+    println!("web gallery for your photos");
     println!();
     println!("USAGE:");
     println!("    {} <COMMAND>", NAME);
@@ -44,5 +48,6 @@ fn print_help() {
     println!("    generate          Generate the static gallery website.");
     println!();
     println!("OPTIONS:");
+    println!("    -h, --help        Print this help.");
     println!("    -v, --version     Print version information.");
 }
