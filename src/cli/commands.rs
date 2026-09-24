@@ -13,7 +13,7 @@ pub fn generate() -> Result<()> {
     let metadata = metadata::load()?;
     println!("✓ Loaded metadata for {} photos.", metadata.len());
 
-    let photos = processing::process_all(&metadata, config.dithering.enabled)?;
+    let photos = processing::process_all(&config, &metadata)?;
     println!("✓ Processed {} photos.", photos.len());
 
     generator::create_site(&config, &photos)?;
@@ -70,13 +70,9 @@ pub fn extract_metadata() -> Result<()> {
     } else {
         HashMap::new()
     };
-    let existing_count = existing.len();
+    let merged = metadata::merger::merge_metadata(&existing, photos_dir)?;
 
-    let existing_copy = existing.clone();
-
-    let merged = metadata::merger::merge_metadata(existing, photos_dir)?;
-
-    if merged.len() != existing_count || merged != existing_copy {
+    if merged != existing {
         metadata::save(&merged)?;
         println!("✓ Metadata file updated. Total entries: {}", merged.len());
     } else {
@@ -91,6 +87,7 @@ title = ""
 subtitle = ""
 description = ""
 author = ""
+language = "en"
 
 [dithering]
 enabled = false

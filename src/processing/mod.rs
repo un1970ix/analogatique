@@ -2,6 +2,7 @@ pub mod dither;
 mod formats;
 mod resize;
 
+use crate::config::Config;
 use crate::metadata::PhotoMetadata;
 use anyhow::Result;
 use serde::Serialize;
@@ -17,6 +18,9 @@ pub struct Photo {
     pub height: u32,
 }
 
-pub fn process_all(metadata: &HashMap<String, PhotoMetadata>, dither: bool) -> Result<Vec<Photo>> {
-    formats::process_all_images(metadata, dither)
+pub fn process_all(
+    config: &Config,
+    metadata: &HashMap<String, PhotoMetadata>,
+) -> Result<Vec<Photo>> {
+    formats::process_all_images(config, metadata)
 }

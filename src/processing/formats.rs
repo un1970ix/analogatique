@@ -1,5 +1,5 @@
 use super::{Photo, resize};
-use crate::config;
+use crate::config::Config;
 use crate::metadata::{PhotoMetadata, exif};
 use anyhow::{Context, Result};
 use image::ImageFormat;
@@ -9,11 +9,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn process_all_images(
+    config: &Config,
     metadata: &HashMap<String, PhotoMetadata>,
-    dither: bool,
 ) -> Result<Vec<Photo>> {
-    let config = config::load()?;
     let output_path = &config.output.path;
+    let dither = config.dithering.enabled;
 
     fs::create_dir_all(format!("{output_path}/assets/thumbnail"))?;
     fs::create_dir_all(format!("{output_path}/assets/full"))?;
@@ -120,7 +120,7 @@ fn process_one(
     let thumb_filename = format!("{slug}.webp");
     let full_filename = format!("{slug}.jpeg");
 
-    let thumb = resize::create_thumbnail(&img, dither)?;
+    let thumb = resize::create_thumbnail(&img, dither);
     thumb.save_with_format(
         format!("{output_path}/assets/thumbnail/{thumb_filename}"),
         ImageFormat::WebP,
