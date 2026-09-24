@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-24
+
 ### Added
 - `site.language` option setting the `lang` attribute on generated pages.
 - Warnings for photos missing from `metadata.txt`, duplicate entries, and dates that are not DD-MM-YYYY.
 
 ### Changed
-- Output filenames are sanitised, so names with spaces, punctuation, or a leading dot no longer produce URLs that hosts refuse to serve.
+- **Generated image filenames have changed.** Names are now sanitised, so a photo called `my shot.jpg` writes `my-shot.webp` rather than a filename that produces an unservable URL. Regenerate the gallery and update any external links to full-resolution images.
 - `alt` text prefers a photo's `name` over its filename.
 - Image `width` and `height` attributes now describe the thumbnail rather than the full-resolution file.
 
@@ -93,7 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release!
 
-[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.4.0...master
+[Unreleased]: https://github.com/un1970ix/analogatique/compare/0.5.0...master
+[0.5.0]: https://github.com/un1970ix/analogatique/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/un1970ix/analogatique/compare/0.3.2...0.4.0
 [0.3.2]: https://github.com/un1970ix/analogatique/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/un1970ix/analogatique/compare/0.3.0...0.3.1
