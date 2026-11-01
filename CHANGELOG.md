@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Just recipes for dependency setup, formatting, checks, tests, builds, and release validation.
+
+### Changed
+
+- Updated Cargo dependencies and GitHub Actions.
+- Cargo linting, tests, and release builds use `--locked` to preserve dependency resolution.
+- Release tags must match the package version, and releases are published only after checks pass and all build artifacts are uploaded to a draft release.
+- Dependency audit failures are reported as warnings without blocking workflows or releases.
+
+### Removed
+
+- Weekly scheduled dependency audits.
+
 ## [0.5.0] - 2026-09-24
 
 ### Added

@@ -7,48 +7,47 @@ on:
 permissions:
   contents: read
 jobs:
-  create-release:
-    name: create-release
+  check:
+    uses: ./.github/workflows/ci.yml
+  audit:
+    uses: ./.github/workflows/audit.yml
+  prepare:
+    needs: [check, audit]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
-      analogatique_version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
-      - name: Get the release version from the tag
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Verify Release Version
         id: version
-        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          version="${GITHUB_REF#refs/tags/}"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [[ "$version" == *-* ]]; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
-          echo "version is: $version"
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: analogatique ${{ steps.version.outputs.version }}
-          body: See [CHANGELOG.md](https://github.com/un1970ix/analogatique/blob/master/CHANGELOG.md) for details.
-          prerelease: ${{ steps.version.outputs.prerelease }}
+          python3 - <<'PYTHON'
+          import os
+          import tomllib
+          from pathlib import Path
+          version = tomllib.loads(Path("Cargo.toml").read_text())["package"]["version"]
+          if os.environ["RELEASE_TAG"] != version:
+              raise SystemExit("The release tag must match Cargo.toml")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"version={version}\nprerelease={str('-' in version).lower()}\n")
+          PYTHON
 
   build-release:
     name: build-release
-    needs: ["create-release"]
+    needs: [prepare]
     runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
     env:
       CARGO: cargo
       TARGET_FLAGS: ""
       TARGET_DIR: ./target
       CROSS_NO_WARNINGS: 0
       RUST_BACKTRACE: 1
+    timeout-minutes: 60
     strategy:
+      fail-fast: false
       matrix:
         build:
           [
@@ -122,7 +121,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 1
 
@@ -134,8 +133,8 @@ jobs:
       - name: Set target flags
         shell: bash
         run: |
-          echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
-          echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+          echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> "$GITHUB_ENV"
+          echo "TARGET_DIR=./target/${{ matrix.target }}" >> "$GITHUB_ENV"
 
       - name: Use Cross
         if: runner.os == 'Linux'
@@ -143,8 +142,8 @@ jobs:
         run: |
           cargo install cross \
             --git https://github.com/cross-rs/cross \
-            --rev 8c1a8aa4b661711f4b7b6ac07c2e8929ce2f7d27
-          echo "CARGO=cross" >> $GITHUB_ENV
+            --rev 8c1a8aa4b661711f4b7b6ac07c2e8929ce2f7d27 --locked
+          echo "CARGO=cross" >> "$GITHUB_ENV"
 
       - name: Show command used for Cargo
         run: |
@@ -153,43 +152,36 @@ jobs:
           echo "target dir is: ${{ env.TARGET_DIR }}"
 
       - name: Build release binary
-        run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
+        run: ${{ env.CARGO }} build --locked --verbose --release ${{ env.TARGET_FLAGS }}
 
       - name: Build archive
         shell: bash
         run: |
-          staging="analogatique-${{ needs.create-release.outputs.analogatique_version }}-${{ matrix.target }}"
+          staging="analogatique-${{ needs.prepare.outputs.version }}-${{ matrix.target }}"
           mkdir -p "$staging"
           if [ "${{ matrix.os }}" = "windows-2022" ] || [ "${{ matrix.build }}" = "x86_64-pc-windows-gnu" ]; then
             cp "target/${{ matrix.target }}/release/analogatique.exe" "$staging/"
             7z a -tzip "$staging.zip" "$staging"
-            echo "ASSET=$staging.zip" >> $GITHUB_ENV
+            echo "ASSET=$staging.zip" >> "$GITHUB_ENV"
           else
             cp "target/${{ matrix.target }}/release/analogatique" "$staging/"
             tar czf "$staging.tar.gz" "$staging"
-            echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+            echo "ASSET=$staging.tar.gz" >> "$GITHUB_ENV"
           fi
 
       - name: Build RPM package
         shell: bash
         if: startsWith(matrix.build, 'x86_64-linux-gnu')
         run: |
-          cargo install cargo-generate-rpm
-          cargo generate-rpm --target ${{ matrix.target }} -o target/${{ matrix.target }}/generate-rpm/analogatique-${{ needs.create-release.outputs.analogatique_version }}-x86_64.rpm
-
-      - name: Upload RPM package
-        if: startsWith(matrix.build, 'x86_64-linux-gnu')
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ needs.create-release.outputs.analogatique_version }}
-          files: target/${{ matrix.target }}/generate-rpm/analogatique-${{ needs.create-release.outputs.analogatique_version }}-x86_64.rpm
+          cargo install cargo-generate-rpm --locked
+          cargo generate-rpm --target ${{ matrix.target }} -o target/${{ matrix.target }}/generate-rpm/analogatique-${{ needs.prepare.outputs.version }}-x86_64.rpm
 
       - name: Create Debian package
         shell: bash
         if: startsWith(matrix.build, 'x86_64-linux-gnu') || startsWith(matrix.build, 'x86_64-linux-musl')
         run: |
-          cargo install cargo-deb
-          cargo deb -p analogatique --target ${{ matrix.target }} --deb-version ${{ needs.create-release.outputs.analogatique_version }}
+          cargo install cargo-deb --locked
+          cargo deb --no-build -p analogatique --target ${{ matrix.target }} --deb-version ${{ needs.prepare.outputs.version }}
           case ${{ matrix.target }} in
             aarch64-*-linux-*) DPKG_ARCH=arm64 ;;
             arm-*-linux-*hf) DPKG_ARCH=armhf ;;
@@ -197,23 +189,57 @@ jobs:
             x86_64-*-linux-*) DPKG_ARCH=amd64 ;;
             *) DPKG_ARCH=notset ;;
           esac;
-          echo "DPKG_ARCH=${DPKG_ARCH}" >> $GITHUB_ENV
+          echo "DPKG_ARCH=${DPKG_ARCH}" >> "$GITHUB_ENV"
 
-          version="${{ needs.create-release.outputs.analogatique_version }}"
+          version="${{ needs.prepare.outputs.version }}"
           built="target/${{ matrix.target }}/debian/analogatique_${version}_${DPKG_ARCH}.deb"
           published="target/${{ matrix.target }}/debian/analogatique_${{ matrix.target }}_${version}_${DPKG_ARCH}.deb"
           mv "$built" "$published"
-          echo "DEB_ASSET=${published}" >> $GITHUB_ENV
+          echo "DEB_ASSET=${published}" >> "$GITHUB_ENV"
 
-      - name: Upload Deb Release Asset
-        if: startsWith(matrix.build, 'x86_64-linux-gnu') || startsWith(matrix.build, 'x86_64-linux-musl')
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ needs.create-release.outputs.analogatique_version }}
-          files: ${{ env.DEB_ASSET }}
+      - name: Collect Release Assets
+        shell: bash
+        run: |
+          mkdir artifacts
+          cp "$ASSET" artifacts/
+          if [ -n "${DEB_ASSET:-}" ]; then cp "$DEB_ASSET" artifacts/; fi
+          if [ -d "target/${{ matrix.target }}/generate-rpm" ]; then
+            cp target/${{ matrix.target }}/generate-rpm/*.rpm artifacts/
+          fi
 
-      - name: Upload release archive
-        uses: softprops/action-gh-release@v3
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          tag_name: ${{ needs.create-release.outputs.analogatique_version }}
-          files: ${{ env.ASSET }}
+          name: release-${{ matrix.target }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, build-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Release Artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          pattern: release-*
+          path: artifacts
+          merge-multiple: true
+      - name: Stage GitHub Release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
+        with:
+          tag_name: ${{ needs.prepare.outputs.version }}
+          name: analogatique ${{ needs.prepare.outputs.version }}
+          body: See [CHANGELOG.md](https://github.com/un1970ix/analogatique/blob/master/CHANGELOG.md) for details.
+          prerelease: ${{ needs.prepare.outputs.prerelease == 'true' }}
+          draft: true
+          fail_on_unmatched_files: true
+          files: artifacts/*
+      - name: Publish Completed Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.version }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --prerelease="$PRERELEASE"
